@@ -1,0 +1,269 @@
+\makeatletter
+
+\pgfkeys{
+	/pgf/fold size/.initial=5pt, %size of the fold in upper right corner of document shape
+	/pgf/doc ratio/.initial=0, %aspect ratio of the boarder
+	/pgf/doc pages/.initial=1,
+	/pgf/doc page distance/.initial=3pt
+}
+
+
+\pgfdeclareshape{folded document}{
+
+	\saveddimen{\foldsize}{
+		\pgfmathsetlength\pgf@x{\pgfkeysvalueof{/pgf/fold size}}
+	}
+	\saveddimen{\docpagedistance}{
+		\pgfmathsetlength\pgf@x{\pgfkeysvalueof{/pgf/doc page distance}}
+	}
+	\savedmacro{\docpages}{
+		\pgfmathtruncatemacro\docpages{\pgfkeysvalueof{/pgf/doc pages}}
+	}
+
+	\savedanchor{\northeastvirtual}{ %northeast anchor if the page wasn't folded
+		%calculate width
+		%Is x < minimum width?
+		\pgf@x=\the\wd\pgfnodeparttextbox%
+		\pgfmathsetlength\pgf@xa{\pgfkeysvalueof{/pgf/inner xsep}}%
+		\advance \pgf@x by 2\pgf@xa% actual x widht of text + sep
+		\pgfmathsetlength\pgf@xb{\pgfkeysvalueof{/pgf/minimum width}}
+		\ifdim\pgf@x<\pgf@xb
+			%box is smaller than minimum width -> enlarge
+			\pgf@x=\pgf@xb
+		\fi
+		%calculate height 
+		%
+		%Calculate the minimum needed height and store it in pgf@yc
+		\pgf@yc=\the\ht\pgfnodeparttextbox
+		\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/inner ysep}}
+		\advance \pgf@yc by 2\pgf@ya
+		%check for aspect ratio
+		\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/doc ratio}} %this normally is no length, but we need length to force latex to accept float numbers
+		\pgfmathsetlength\pgf@yb{0pt}
+		\ifdim\pgf@ya=\pgf@yb
+			%no aspect ratio given -> normal calculation
+			%first, is y < minimum height
+			\pgf@y=\pgf@yc
+			\pgfmathsetlength\pgf@yb{\pgfkeysvalueof{/pgf/minimum height}}
+			\ifdim\pgf@y<\pgf@yb
+				%box is smaller than minimum widht -> enlarge
+				\pgf@y=\pgf@yb
+			\fi
+		\else
+			%aspect ratio given -> adjust height and width so that it matches the aspect ratio AND that the text fits inside AND minimum width option is fulfilled
+			%Try to set height to ratio*width
+			\pgfmathsetlength\pgf@y{\pgfkeysvalueof{/pgf/doc ratio} * \pgf@x}
+			\ifdim\pgf@y<\pgf@yc
+				%height is too small -> use height needed by text
+				\pgf@y=\pgf@yc
+				%now, set y to the needed height
+				\pgfmathsetlength\pgf@x{\pgf@y / \pgfkeysvalueof{/pgf/doc ratio}}
+			\fi
+			\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/minimum height}}
+			\ifdim\pgf@y<\pgf@ya
+				%height is smaller than minimum height -> use minimum height
+				\pgf@y=\pgf@ya
+				%now, set y to the needed height
+				\pgfmathsetlength\pgf@x{\pgf@y / \pgfkeysvalueof{/pgf/doc ratio}}
+			\fi
+		\fi
+		%
+		% Now, calculate right border: .5\wd\pgfnodeparttextbox + .5 \pgf@x + outer sep
+		\pgf@x=0.5\pgf@x
+		\advance \pgf@x by 0.5\wd\pgfnodeparttextbox
+		\pgfmathsetlength\pgf@xa{\pgfkeysvalueof{/pgf/outer xsep}}
+		\advance \pgf@x by \pgf@xa
+		%Now, calculate upper border: .5\ht\pgfnodeparttextbox - .5\dp\pgfnodeparttextbox + 0.5\pgf@y + outer sep
+		\pgf@y=0.5\pgf@y
+		\advance \pgf@y by 0.5\ht\pgfnodeparttextbox
+		\advance \pgf@y by -0.5\dp\pgfnodeparttextbox
+		\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/outer ysep}}
+		\advance \pgf@y by \pgf@ya
+	}
+	
+	\savedanchor{\southwestinner}{
+		%calculate width
+		%Is x < minimum width?
+		\pgf@x=\the\wd\pgfnodeparttextbox%
+		\pgfmathsetlength\pgf@xa{\pgfkeysvalueof{/pgf/inner xsep}}%
+		\advance \pgf@x by 2\pgf@xa% actual x widht of text + sep
+		\pgfmathsetlength\pgf@xb{\pgfkeysvalueof{/pgf/minimum width}}
+		\ifdim\pgf@x<\pgf@xb
+			%box is smaller than minimum width -> enlarge
+			\pgf@x=\pgf@xb
+		\fi
+		%calculate height 
+		%
+		%Calculate the minimum neede height and store it in pgf@yc
+		\pgf@yc=\the\ht\pgfnodeparttextbox
+		\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/inner ysep}}
+		\advance \pgf@yc by 2\pgf@ya
+		%check for aspect ratio
+		\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/doc ratio}} %this normally is no length, but we need length to force latex to accept float numbers
+		\pgfmathsetlength\pgf@yb{0pt}
+		\ifdim\pgf@ya=\pgf@yb
+			%no aspect ratio given -> normal calculation
+			%first, is y < minimum height
+			\pgf@y=\pgf@yc
+			\pgfmathsetlength\pgf@yb{\pgfkeysvalueof{/pgf/minimum height}}
+			\ifdim\pgf@y<\pgf@yb
+				%box is smaller than minimum widht -> enlarge
+				\pgf@y=\pgf@yb
+			\fi
+		\else
+			%aspect ratio given -> adjust height and width so that it matches the aspect ratio AND that the text fits inside AND minimum width option is fulfilled
+			%Try to set height to ratio*width
+			\pgfmathsetlength\pgf@y{\pgfkeysvalueof{/pgf/doc ratio} * \pgf@x}
+			\ifdim\pgf@y<\pgf@yc
+				%height is too small -> use height needed by text
+				\pgf@y=\pgf@yc
+				%now, set y to the needed height
+				\pgfmathsetlength\pgf@x{\pgf@y / \pgfkeysvalueof{/pgf/doc ratio}}
+			\fi
+			\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/minimum height}}
+			\ifdim\pgf@y<\pgf@ya
+				%height is smaller than minimum height -> use minimum height
+				\pgf@y=\pgf@ya
+				%now, set y to the needed height
+				\pgfmathsetlength\pgf@x{\pgf@y / \pgfkeysvalueof{/pgf/doc ratio}}
+			\fi
+		\fi
+		%
+		% Now, calculate left border: .5\wd\pgfnodeparttextbox - .5 \pgf@x - outer sep
+		\pgf@x=-0.5\pgf@x
+		\advance \pgf@x by 0.5\wd\pgfnodeparttextbox
+		\pgfmathsetlength\pgf@xa{\pgfkeysvalueof{/pgf/outer xsep}}
+		\advance \pgf@x by -\pgf@xa
+		%Now, calculate lower border: .5\ht\pgfnodeparttextbox - .5\dp\pgfnodeparttextbox - 0.5\pgf@y - outer sep
+		\pgf@y=-0.5\pgf@y
+		\advance \pgf@y by 0.5\ht\pgfnodeparttextbox
+		\advance \pgf@y by -0.5\dp\pgfnodeparttextbox
+		\pgfmathsetlength\pgf@ya{\pgfkeysvalueof{/pgf/outer ysep}}
+		\advance \pgf@y by -\pgf@ya
+	}
+ 
+	\anchor{center}{
+		\pgf@process{\southwestinner}
+		\pgf@xa=0.5\pgf@x
+		\pgf@ya=0.5\pgf@y
+		\pgf@process{\northeastvirtual}
+		\pgf@x=0.5\pgf@x
+		\pgf@y=0.5\pgf@y
+		\advance \pgf@x by \pgf@xa
+		\advance \pgf@y by \pgf@ya
+	}
+	\anchor{east}{
+		\pgf@process{\southwestinner}
+		\pgf@ya=0.5\pgf@y
+		\pgf@process{\northeastvirtual}
+		\pgf@y=0.5\pgf@y
+		\advance \pgf@y by \pgf@ya
+	}
+	\anchor{east north east}{
+		\pgf@process{\northeastvirtual}
+		\advance \pgf@y by -\foldsize
+	}
+	\anchor{north east}{
+		\pgfmathsetlength\pgfutil@tempdima{\foldsize}
+		\pgf@process{\northeastvirtual}
+		\advance \pgf@x by -0.5\pgfutil@tempdima
+		\advance \pgf@y by -0.5\pgfutil@tempdima
+	}
+	\anchor{north north east}{
+		\pgf@process{\northeastvirtual}
+		\advance \pgf@x by -\foldsize
+	}
+	\anchor{north}{
+		\pgf@process{\southwestinner}
+		\pgf@xa=0.5\pgf@x
+		\pgf@process{\northeastvirtual}
+		\pgf@x=0.5\pgf@x
+		\advance \pgf@x by \pgf@xa
+	}
+	\anchor{north west}{
+		\pgf@process{\northeastvirtual}
+		\pgf@ya=\pgf@y
+		\pgf@process{\southwestinner}
+		\pgf@y=\pgf@ya
+	}
+	\anchor{west}{
+		\pgf@process{\northeastvirtual}
+		\pgf@ya=0.5\pgf@y
+		\pgf@process{\southwestinner}
+		\pgfmathsetlength\pgf@xa{ (\docpages-1) * \docpagedistance}
+		\advance \pgf@x by -\pgf@xa
+		\pgf@y=0.5\pgf@y
+		\advance \pgf@y by \pgf@ya
+	}
+	\anchor{south west}{
+		\pgfmathsetlength\pgfutil@tempdima{ (\docpages-1) * \docpagedistance}
+		\pgf@process{\southwestinner}
+		\advance \pgf@x by -\pgfutil@tempdima
+		\advance \pgf@y by -\pgfutil@tempdima
+	}
+	\anchor{south}{
+		\pgfmathsetlength\pgfutil@tempdima{ (\docpages-1) * \docpagedistance}
+		\pgf@process{\northeastvirtual}
+		\pgf@xa=0.5\pgf@x
+		\pgf@process{\southwestinner}
+		\pgf@x=0.5\pgf@x
+		\advance \pgf@x by \pgf@xa
+		\advance \pgf@y by -\pgfutil@tempdima
+	}
+	\anchor{south east}{
+		\pgf@process{\northeastvirtual}
+		\pgf@xa=\pgf@x
+		\pgf@process{\southwestinner}
+		\pgf@x=\pgf@xa
+	}
+
+\backgroundpath{
+% this shape will have the following coordinates:
+% +---\ b
+% |   |\
+% |   c-\
+% |     |
+% a-----+
+% store lower left in xa/ya and upper right in xb/yb
+\pgf@process{\southwestinner}
+\pgf@xa=\pgf@x \advance \pgf@xa by \pgfkeysvalueof{/pgf/outer xsep}
+\pgf@ya=\pgf@y \advance \pgf@ya by \pgfkeysvalueof{/pgf/outer ysep}
+\pgf@process{\northeastvirtual}
+\pgf@xb=\pgf@x \advance \pgf@xb by -\pgfkeysvalueof{/pgf/outer xsep}
+\pgf@yb=\pgf@y \advance \pgf@yb by -\pgfkeysvalueof{/pgf/outer ysep}
+% compute corner of ‘‘flipped page’’
+\pgf@xc=\pgf@xb \advance\pgf@xc by-\pgfkeysvalueof{/pgf/fold size}
+\pgf@yc=\pgf@yb \advance\pgf@yc by-\pgfkeysvalueof{/pgf/fold size}
+% construct main path
+\pgfpathmoveto{\pgfpoint{\pgf@xa}{\pgf@ya}}
+\pgfpathlineto{\pgfpoint{\pgf@xa}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@ya}}
+\pgfpathclose
+% add little corner
+\pgfpathmoveto{\pgfpoint{\pgf@xc}{\pgf@yb}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xb}{\pgf@yc}}
+\pgfpathlineto{\pgfpoint{\pgf@xc}{\pgf@yc}} %needed to fill the shape correctly
+% add additional pages
+\ifnum\pgfkeysvalueof{/pgf/doc pages}>1
+	\foreach \fPageI in {2,...,\pgfkeysvalueof{/pgf/doc pages}}{
+		%set pgfutil@temdima to size of displacement respective to main page
+		\pgfmathsetlength\pgfutil@tempdima{ (\fPageI-1)*\pgfkeysvalueof{/pgf/doc page distance}}
+		%set start of other pages
+		\ifnum\fPageI=2
+			\pgfmathsetlength\pgfutil@tempdimb{0pt}
+		\else
+			\pgfmathsetlength\pgfutil@tempdimb{ (\fPageI-2)*\docpagedistance}
+		\fi
+		\pgfpathmoveto{\pgfpointadd{\pgfpoint{\pgf@xb}{\pgf@ya}}{\pgfpoint{-\pgfutil@tempdima}{-\pgfutil@tempdimb}}}
+		\pgfpathlineto{\pgfpointadd{\pgfpoint{\pgf@xb}{\pgf@ya}}{\pgfpoint{-\pgfutil@tempdima}{-\pgfutil@tempdima}}}
+		\pgfpathlineto{\pgfpointadd{\pgfpoint{\pgf@xa}{\pgf@ya}}{\pgfpoint{-\pgfutil@tempdima}{-\pgfutil@tempdima}}}
+		\pgfpathlineto{\pgfpointadd{\pgfpoint{\pgf@xa}{\pgf@yb}}{\pgfpoint{-\pgfutil@tempdima}{-\pgfutil@tempdima}}}
+		\pgfpathlineto{\pgfpointadd{\pgfpoint{\pgf@xa}{\pgf@yb}}{\pgfpoint{-\pgfutil@tempdimb}{-\pgfutil@tempdima}}}
+	}
+\fi
+}
+}
+\makeatother
